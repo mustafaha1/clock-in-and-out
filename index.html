@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Time Tracking System</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 400px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .clock-in {
+            background-color: #e6f7e6;
+            color: #2e7d32;
+        }
+        
+        .clock-out {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .button {
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+            width: 180px;
+        }
+        
+        .clock-in-btn {
+            background-color: #4CAF50;
+        }
+        
+        .clock-in-btn:hover {
+            background-color: #3e8e41;
+        }
+        
+        .clock-out-btn {
+            background-color: #f44336;
+        }
+        
+        .clock-out-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        .action-btn {
+            background-color: #607d8b;
+            width: auto;
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+        
+        .action-btn:hover {
+            background-color: #455a64;
+        }
+        
+        .share-btn {
+            background-color: #2196F3;
+        }
+        
+        .share-btn:hover {
+            background-color: #0b7dda;
+        }
+        
+        .button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .time-display {
+            font-size: 24px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .history {
+            margin-top: 30px;
+            text-align: left;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .history h3 {
+            margin-bottom: 10px;
+        }
+        
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .history-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .history-item-delete {
+            background: none;
+            border: none;
+            color: #f44336;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 5px;
+        }
+        
+        .shift-total {
+            font-weight: bold;
+            margin-top: 10px;
+            color: #333;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-confirm {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .modal-cancel {
+            background-color: #607d8b;
+            color: white;
+        }
+        
+        .share-options {
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .share-option {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .share-option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .copy-textarea {
+            width: 100%;
+            height: 100px;
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Staff Time Tracking</h1>
+        
+        <div id="status" class="status clock-out">Currently Clocked Out</div>
+        
+        <div class="time-display" id="current-time">00:00:00</div>
+        
+        <button id="clockInBtn" class="button clock-in-btn">Clock In</button>
+        <button id="clockOutBtn" class="button clock-out-btn" disabled>Clock Out</button>
+        
+        <div class="time-display">
+            <div>Shift Duration: <span id="shift-duration">00:00:00</span></div>
+        </div>
+        
+        <div class="history">
+            <h3>Today's Activity</h3>
+            <div id="activity-log"></div>
+            <div class="shift-total" id="total-time">Total time today: 00:00:00</div>
+            <div class="action-buttons">
+                <button id="deleteAllBtn" class="button action-btn">Delete All</button>
+                <button id="shareBtn" class="button action-btn share-btn">Share</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete all time records?</p>
+            <p>This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="confirmDeleteBtn" class="button modal-confirm">Delete All</button>
+                <button id="cancelDeleteBtn" class="button modal-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <h3>Share Time Records</h3>
+            <div class="share-options">
+                <div class="share-option" id="copyOption">
+                    <span>📋 Copy to Clipboard</span>
+                </div>
+                <div class="share-option" id="downloadOption">
+                    <span>💾 Download as Text File</span>
+                </div>
+                <div class="share-option" id="emailOption">
+                    <span>✉️ Email (Compose)</span>
+                </div>
+            </div>
+            <textarea id="shareTextarea" class="copy-textarea" readonly></textarea>
+            <div class="modal-buttons">
+                <button id="closeShareBtn" class="button modal-cancel">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const clockInBtn = document.getElementById('clockInBtn');
+        const clockOutBtn = document.getElementById('clockOutBtn');
+        const statusDiv = document.getElementById('status');
+        const currentTimeDisplay = document.getElementById('current-time');
+        const shiftDurationDisplay = document.getElementById('shift-duration');
+        const activityLog = document.getElementById('activity-log');
+        const totalTimeDisplay = document.getElementById('total-time');
+        const deleteAllBtn = document.getElementById('deleteAllBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const shareModal = document.getElementById('shareModal');
+        const copyOption = document.getElementById('copyOption');
+        const downloadOption = document.getElementById('downloadOption');
+        const emailOption = document.getElementById('emailOption');
+        const shareTextarea = document.getElementById('shareTextarea');
+        const closeShareBtn = document.getElementById('closeShareBtn');
+        
+        // State variables
+        let isClockedIn = false;
+        let clockInTime = null;
+        let shiftInterval = null;
+        let totalSecondsToday = 0;
+        let todayActivities = [];
+        
+        // Initialize the clock
+        function updateClock() {
+            const now = new Date();
+            currentTimeDisplay.textContent = formatTime(now);
+        }
+        
+        // Format time as HH:MM:SS
+        function formatTime(date) {
+            // Ensure we have a valid Date object
+            if (!(date instanceof Date) || isNaN(date)) {
+                console.error('Invalid date object:', date);
+                return '00:00:00';
+            }
+            
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const seconds = date.getSeconds().toString().padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+        
+        // Format date as YYYY-MM-DD
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Format seconds as HH:MM:SS
+        function formatSeconds(seconds) {
+            const hrs = Math.floor(seconds / 3600).toString().padStart(2, '0');
+            const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+            const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${hrs}:${mins}:${secs}`;
+        }
+        
+        // Update shift duration display
+        function updateShiftDuration() {
+            if (!isClockedIn || !clockInTime) return;
+            
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - clockInTime) / 1000);
+            shiftDurationDisplay.textContent = formatSeconds(diffInSeconds);
+        }
+        
+        // Clock In function
+        function clockIn() {
+            if (isClockedIn) return;
+            
+            clockInTime = new Date();
+            isClockedIn = true;
+            
+            // Update UI
+            statusDiv.textContent = `Clocked In at ${formatTime(clockInTime)}`;
+            statusDiv.className = 'status clock-in';
+            clockInBtn.disabled = true;
+            clockOutBtn.disabled = false;
+            
+            // Start updating shift duration
+            shiftInterval = setInterval(updateShiftDuration, 1000);
+            
+            // Add to activity log
+            const activity = {
+                type: 'in',
+                time: clockInTime.getTime(), // Store as timestamp
+                id: Date.now() // Unique ID for each activity
+            };
+            todayActivities.push(activity);
+            updateActivityLog();
+        }
+        
+        // Clock Out function
+        function clockOut() {
+            if (!isClockedIn) return;
+            
+            const clockOutTime = new Date();
+            const shiftDuration = Math.floor((clockOutTime - clockInTime) / 1000);
+            totalSecondsToday += shiftDuration;
+            
+            isClockedIn = false;
+            
+            // Update UI
+            statusDiv.textContent = `Clocked Out at ${formatTime(clockOutTime)}`;
+            statusDiv.className = 'status clock-out';
+            clockInBtn.disabled = false;
+            clockOutBtn.disabled = true;
+            shiftDurationDisplay.textContent = '00:00:00';
+            
+            // Stop updating shift duration
+            clearInterval(shiftInterval);
+            
+            // Add to activity log
+            const activity = {
+                type: 'out',
+                time: clockOutTime.getTime(), // Store as timestamp
+                duration: shiftDuration,
+                id: Date.now() // Unique ID for each activity
+            };
+            todayActivities.push(activity);
+            updateActivityLog();
+            
+            // Update total time
+            totalTimeDisplay.textContent = `Total time today: ${formatSeconds(totalSecondsToday)}`;
+            
+            // Save to storage
+            saveToStorage();
+        }
+        
+        // Delete all records
+        function deleteAllRecords() {
+            todayActivities = [];
+            totalSecondsToday = 0;
+            totalTimeDisplay.textContent = 'Total time today: 00:00:00';
+            updateActivityLog();
+            saveToStorage();
+            closeModal();
+        }
+        
+        // Update activity log
+        function updateActivityLog() {
+            activityLog.innerHTML = '';
+            
+            if (todayActivities.length === 0) {
+                activityLog.innerHTML = '<div class="history-item">No activity yet today</div>';
+                return;
+            }
+            
+            // Group in/out pairs for better display
+            for (let i = 0; i < todayActivities.length; i++) {
+                const activity = todayActivities[i];
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                
+                // Convert timestamp back to Date object
+                const activityTime = new Date(activity.time);
+                
+                if (activity.type === 'in') {
+                    div.innerHTML = `
+                        <span>🔵 Clocked in at ${formatTime(activityTime)}</span>
+                        <div class="history-item-actions">
+                            <button class="history-item-delete" data-id="${activity.id}">Delete</button>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <span>🔴 Clocked out at ${formatTime(activityTime)} (${formatSeconds(activity.duration)})</span>
+                        <div class="history-item-actions">
+                            <button class="history-item-delete" data-id="${activity.id}">Delete</button>
+                        </div>
+                    `;
+                }
+                
+                activityLog.appendChild(div);
+            }
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.history-item-delete').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.getAttribute('data-id'));
+                    deleteRecord(id);
+                });
+            });
+        }
+        
+        // Delete a single record
+        function deleteRecord(id) {
+            if (confirm('Are you sure you want to delete this record?')) {
+                // Find the index of the record to delete
+                const index = todayActivities.findIndex(activity => activity.id === id);
+                if (index !== -1) {
+                    // If it's an "out" record, subtract its duration from total
+                    if (todayActivities[index].type === 'out' && todayActivities[index].duration) {
+                        totalSecondsToday -= todayActivities[index].duration;
+                        totalTimeDisplay.textContent = `Total time today: ${formatSeconds(totalSecondsToday)}`;
+                    }
+                    
+                    // Remove the record
+                    todayActivities.splice(index, 1);
+                    
+                    // If we deleted an "in" record, check if we need to delete its corresponding "out" record
+                    if (index < todayActivities.length && todayActivities[index].type === 'out') {
+                        if (todayActivities[index].duration) {
+                            totalSecondsToday -= todayActivities[index].duration;
+                            totalTimeDisplay.textContent = `Total time today: ${formatSeconds(totalSecondsToday)}`;
+                        }
+                        todayActivities.splice(index, 1);
+                    }
+                    
+                    updateActivityLog();
+                    saveToStorage();
+                }
+            }
+        }
+        
+        // Generate shareable text
+        function generateShareText() {
+            let text = `Time Tracking Report - ${formatDate(new Date())}\n\n`;
+            text += `Total time today: ${formatSeconds(totalSecondsToday)}\n\n`;
+            text += "Activity Log:\n";
+            
+            if (todayActivities.length === 0) {
+                text += "No activities recorded today\n";
+            } else {
+                for (let i = 0; i < todayActivities.length; i++) {
+                    const activity = todayActivities[i];
+                    const activityTime = new Date(activity.time);
+                    
+                    if (activity.type === 'in') {
+                        text += `🔵 Clocked in at ${formatTime(activityTime)}\n`;
+                    } else {
+                        text += `🔴 Clocked out at ${formatTime(activityTime)} (Duration: ${formatSeconds(activity.duration)})\n`;
+                    }
+                }
+            }
+            
+            return text;
+        }
+        
+        // Share functions
+        function openShareModal() {
+            shareTextarea.value = generateShareText();
+            shareModal.style.display = 'block';
+        }
+        
+        function closeShareModal() {
+            shareModal.style.display = 'none';
+        }
+        
+        function copyToClipboard() {
+            shareTextarea.select();
+            document.execCommand('copy');
+            alert('Time records copied to clipboard!');
+        }
+        
+        function downloadAsFile() {
+            const text = generateShareText();
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `time-tracking-${formatDate(new Date())}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function openEmailClient() {
+            const subject = `Time Tracking Report - ${formatDate(new Date())}`;
+            const body = generateShareText();
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+        
+        // Modal functions
+        function openModal() {
+            confirmModal.style.display = 'block';
+        }
+        
+        function closeModal() {
+            confirmModal.style.display = 'none';
+        }
+        
+        // Load any existing data from localStorage
+        function loadFromStorage() {
+            const today = new Date().toDateString();
+            const savedData = localStorage.getItem('timeTrackingData');
+            
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    
+                    if (data.date === today) {
+                        todayActivities = data.activities || [];
+                        totalSecondsToday = data.totalSeconds || 0;
+                        totalTimeDisplay.textContent = `Total time today: ${formatSeconds(totalSecondsToday)}`;
+                        updateActivityLog();
+                    }
+                } catch (e) {
+                    console.error('Error parsing saved data:', e);
+                }
+            }
+        }
+        
+        // Save data to localStorage
+        function saveToStorage() {
+            const today = new Date().toDateString();
+            const data = {
+                date: today,
+                activities: todayActivities,
+                totalSeconds: totalSecondsToday
+            };
+            localStorage.setItem('timeTrackingData', JSON.stringify(data));
+        }
+        
+        // Event listeners
+        clockInBtn.addEventListener('click', clockIn);
+        clockOutBtn.addEventListener('click', clockOut);
+        deleteAllBtn.addEventListener('click', openModal);
+        shareBtn.addEventListener('click', openShareModal);
+        confirmDeleteBtn.addEventListener('click', deleteAllRecords);
+        cancelDeleteBtn.addEventListener('click', closeModal);
+        copyOption.addEventListener('click', copyToClipboard);
+        downloadOption.addEventListener('click', downloadAsFile);
+        emailOption.addEventListener('click', openEmailClient);
+        closeShareBtn.addEventListener('click', closeShareModal);
+        
+        // Close modals when clicking outside of them
+        window.addEventListener('click', (event) => {
+            if (event.target === confirmModal) {
+                closeModal();
+            }
+            if (event.target === shareModal) {
+                closeShareModal();
+            }
+        });
+        
+        // Initialize
+        setInterval(updateClock, 1000);
+        updateClock();
+        loadFromStorage();
+        
+        // Save data periodically and before unload
+        setInterval(saveToStorage, 30000);
+        window.addEventListener('beforeunload', saveToStorage);
+    </script>
+</body>
+</html>
