@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Time Tracking System</title>
+    <title>Persistent Time Tracking System</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -11,8 +11,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
         }
         
         .container {
@@ -20,7 +21,8 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 30px;
-            width: 400px;
+            width: 100%;
+            max-width: 800px;
             text-align: center;
         }
         
@@ -81,7 +83,7 @@
             background-color: #607d8b;
             width: auto;
             padding: 10px 20px;
-            margin-top: 10px;
+            margin: 5px;
         }
         
         .action-btn:hover {
@@ -140,17 +142,44 @@
             padding: 2px 5px;
         }
         
-        .shift-total {
+        .summary {
             font-weight: bold;
-            margin-top: 10px;
+            margin: 20px 0;
             color: #333;
+            text-align: left;
         }
         
         .action-buttons {
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             gap: 10px;
             margin-top: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #2196F3;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
         
         /* Modal styles */
@@ -171,7 +200,7 @@
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
-            max-width: 400px;
+            max-width: 500px;
             border-radius: 5px;
             text-align: center;
         }
@@ -222,30 +251,99 @@
             border-radius: 4px;
             resize: none;
         }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Staff Time Tracking</h1>
+        <h1>Persistent Time Tracking</h1>
         
-        <div id="status" class="status clock-out">Currently Clocked Out</div>
-        
-        <div class="time-display" id="current-time">00:00:00</div>
-        
-        <button id="clockInBtn" class="button clock-in-btn">Clock In</button>
-        <button id="clockOutBtn" class="button clock-out-btn" disabled>Clock Out</button>
-        
-        <div class="time-display">
-            <div>Shift Duration: <span id="shift-duration">00:00:00</span></div>
+        <div class="tabs">
+            <div class="tab active" data-tab="today">Today</div>
+            <div class="tab" data-tab="history">History</div>
+            <div class="tab" data-tab="stats">Statistics</div>
         </div>
         
-        <div class="history">
-            <h3>Today's Activity</h3>
-            <div id="activity-log"></div>
-            <div class="shift-total" id="total-time">Total time today: 00:00:00</div>
+        <div id="today-tab" class="tab-content active">
+            <div id="status" class="status clock-out">Currently Clocked Out</div>
+            
+            <div class="time-display" id="current-time">00:00:00</div>
+            
+            <button id="clockInBtn" class="button clock-in-btn">Clock In</button>
+            <button id="clockOutBtn" class="button clock-out-btn" disabled>Clock Out</button>
+            
+            <div class="time-display">
+                <div>Current Shift: <span id="shift-duration">00:00:00</span></div>
+            </div>
+            
+            <div class="summary">
+                <div>Today: <span id="today-total">00:00:00</span></div>
+                <div>Week: <span id="week-total">00:00:00</span></div>
+                <div>Month: <span id="month-total">00:00:00</span></div>
+            </div>
+            
+            <div class="history">
+                <h3>Today's Activity</h3>
+                <div id="activity-log"></div>
+            </div>
+        </div>
+        
+        <div id="history-tab" class="tab-content">
             <div class="action-buttons">
-                <button id="deleteAllBtn" class="button action-btn">Delete All</button>
-                <button id="shareBtn" class="button action-btn share-btn">Share</button>
+                <button id="deleteAllBtn" class="button action-btn">Delete All Records</button>
+                <button id="shareBtn" class="button action-btn share-btn">Export Data</button>
+            </div>
+            
+            <div id="history-log"></div>
+        </div>
+        
+        <div id="stats-tab" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="today-stat">00:00:00</div>
+                    <div class="stat-label">Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="week-stat">00:00:00</div>
+                    <div class="stat-label">This Week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="month-stat">00:00:00</div>
+                    <div class="stat-label">This Month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-stat">00:00:00</div>
+                    <div class="stat-label">All Time</div>
+                </div>
+            </div>
+            
+            <div class="history">
+                <h3>Recent Activity</h3>
+                <div id="recent-activity"></div>
             </div>
         </div>
     </div>
@@ -254,7 +352,7 @@
     <div id="confirmModal" class="modal">
         <div class="modal-content">
             <h3>Confirm Deletion</h3>
-            <p>Are you sure you want to delete all time records?</p>
+            <p>Are you sure you want to delete ALL time records?</p>
             <p>This action cannot be undone.</p>
             <div class="modal-buttons">
                 <button id="confirmDeleteBtn" class="button modal-confirm">Delete All</button>
@@ -266,7 +364,7 @@
     <!-- Share Modal -->
     <div id="shareModal" class="modal">
         <div class="modal-content">
-            <h3>Share Time Records</h3>
+            <h3>Export Time Records</h3>
             <div class="share-options">
                 <div class="share-option" id="copyOption">
                     <span>📋 Copy to Clipboard</span>
@@ -274,8 +372,8 @@
                 <div class="share-option" id="downloadOption">
                     <span>💾 Download as Text File</span>
                 </div>
-                <div class="share-option" id="emailOption">
-                    <span>✉️ Email (Compose)</span>
+                <div class="share-option" id="downloadCSVOption">
+                    <span>📊 Download as CSV (Excel)</span>
                 </div>
             </div>
             <textarea id="shareTextarea" class="copy-textarea" readonly></textarea>
@@ -293,7 +391,15 @@
         const currentTimeDisplay = document.getElementById('current-time');
         const shiftDurationDisplay = document.getElementById('shift-duration');
         const activityLog = document.getElementById('activity-log');
-        const totalTimeDisplay = document.getElementById('total-time');
+        const historyLog = document.getElementById('history-log');
+        const recentActivity = document.getElementById('recent-activity');
+        const todayTotalDisplay = document.getElementById('today-total');
+        const weekTotalDisplay = document.getElementById('week-total');
+        const monthTotalDisplay = document.getElementById('month-total');
+        const todayStatDisplay = document.getElementById('today-stat');
+        const weekStatDisplay = document.getElementById('week-stat');
+        const monthStatDisplay = document.getElementById('month-stat');
+        const totalStatDisplay = document.getElementById('total-stat');
         const deleteAllBtn = document.getElementById('deleteAllBtn');
         const shareBtn = document.getElementById('shareBtn');
         const confirmModal = document.getElementById('confirmModal');
@@ -302,16 +408,17 @@
         const shareModal = document.getElementById('shareModal');
         const copyOption = document.getElementById('copyOption');
         const downloadOption = document.getElementById('downloadOption');
-        const emailOption = document.getElementById('emailOption');
+        const downloadCSVOption = document.getElementById('downloadCSVOption');
         const shareTextarea = document.getElementById('shareTextarea');
         const closeShareBtn = document.getElementById('closeShareBtn');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
         
         // State variables
         let isClockedIn = false;
         let clockInTime = null;
         let shiftInterval = null;
-        let totalSecondsToday = 0;
-        let todayActivities = [];
+        let allTimeRecords = [];
         
         // Initialize the clock
         function updateClock() {
@@ -321,7 +428,6 @@
         
         // Format time as HH:MM:SS
         function formatTime(date) {
-            // Ensure we have a valid Date object
             if (!(date instanceof Date) || isNaN(date)) {
                 console.error('Invalid date object:', date);
                 return '00:00:00';
@@ -341,12 +447,70 @@
             return `${year}-${month}-${day}`;
         }
         
+        // Format date with month name (e.g., Jan 15, 2023)
+        function formatDateWithMonth(date) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        }
+        
         // Format seconds as HH:MM:SS
         function formatSeconds(seconds) {
             const hrs = Math.floor(seconds / 3600).toString().padStart(2, '0');
             const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
             const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
             return `${hrs}:${mins}:${secs}`;
+        }
+        
+        // Calculate time totals
+        function calculateTimeTotals() {
+            const now = new Date();
+            const today = formatDate(now);
+            const thisWeek = getWeekNumber(now);
+            const thisMonth = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0');
+            
+            let todayTotal = 0;
+            let weekTotal = 0;
+            let monthTotal = 0;
+            let allTimeTotal = 0;
+            
+            allTimeRecords.forEach(record => {
+                if (record.type === 'out' && record.duration) {
+                    allTimeTotal += record.duration;
+                    
+                    const recordDate = formatDate(new Date(record.time));
+                    const recordWeek = getWeekNumber(new Date(record.time));
+                    const recordMonth = new Date(record.time).getFullYear() + '-' + (new Date(record.time).getMonth() + 1).toString().padStart(2, '0');
+                    
+                    if (recordDate === today) todayTotal += record.duration;
+                    if (recordWeek === thisWeek) weekTotal += record.duration;
+                    if (recordMonth === thisMonth) monthTotal += record.duration;
+                }
+            });
+            
+            // Add current shift if clocked in
+            if (isClockedIn && clockInTime) {
+                const currentDuration = Math.floor((now - clockInTime) / 1000);
+                todayTotal += currentDuration;
+                weekTotal += currentDuration;
+                monthTotal += currentDuration;
+                allTimeTotal += currentDuration;
+            }
+            
+            return {
+                today: todayTotal,
+                week: weekTotal,
+                month: monthTotal,
+                allTime: allTimeTotal
+            };
+        }
+        
+        // Get ISO week number
+        function getWeekNumber(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+            const week1 = new Date(d.getFullYear(), 0, 4);
+            return d.getFullYear() + '-W' + Math.ceil(((d - week1) / 86400000 + 1) / 7).toString().padStart(2, '0');
         }
         
         // Update shift duration display
@@ -356,6 +520,21 @@
             const now = new Date();
             const diffInSeconds = Math.floor((now - clockInTime) / 1000);
             shiftDurationDisplay.textContent = formatSeconds(diffInSeconds);
+            
+            // Update totals in real-time while clocked in
+            updateTimeTotals();
+        }
+        
+        // Update all time total displays
+        function updateTimeTotals() {
+            const totals = calculateTimeTotals();
+            todayTotalDisplay.textContent = formatSeconds(totals.today);
+            weekTotalDisplay.textContent = formatSeconds(totals.week);
+            monthTotalDisplay.textContent = formatSeconds(totals.month);
+            todayStatDisplay.textContent = formatSeconds(totals.today);
+            weekStatDisplay.textContent = formatSeconds(totals.week);
+            monthStatDisplay.textContent = formatSeconds(totals.month);
+            totalStatDisplay.textContent = formatSeconds(totals.allTime);
         }
         
         // Clock In function
@@ -377,11 +556,14 @@
             // Add to activity log
             const activity = {
                 type: 'in',
-                time: clockInTime.getTime(), // Store as timestamp
-                id: Date.now() // Unique ID for each activity
+                time: clockInTime.getTime(),
+                id: Date.now()
             };
-            todayActivities.push(activity);
-            updateActivityLog();
+            
+            // Add to today's activities and all records
+            allTimeRecords.push(activity);
+            updateActivityLogs();
+            saveToStorage();
         }
         
         // Clock Out function
@@ -390,7 +572,6 @@
             
             const clockOutTime = new Date();
             const shiftDuration = Math.floor((clockOutTime - clockInTime) / 1000);
-            totalSecondsToday += shiftDuration;
             
             isClockedIn = false;
             
@@ -407,46 +588,69 @@
             // Add to activity log
             const activity = {
                 type: 'out',
-                time: clockOutTime.getTime(), // Store as timestamp
+                time: clockOutTime.getTime(),
                 duration: shiftDuration,
-                id: Date.now() // Unique ID for each activity
+                id: Date.now()
             };
-            todayActivities.push(activity);
-            updateActivityLog();
             
-            // Update total time
-            totalTimeDisplay.textContent = `Total time today: ${formatSeconds(totalSecondsToday)}`;
-            
-            // Save to storage
+            // Add to all records
+            allTimeRecords.push(activity);
+            updateActivityLogs();
             saveToStorage();
         }
         
         // Delete all records
         function deleteAllRecords() {
-            todayActivities = [];
-            totalSecondsToday = 0;
-            totalTimeDisplay.textContent = 'Total time today: 00:00:00';
-            updateActivityLog();
-            saveToStorage();
-            closeModal();
+            if (confirm('Are you sure you want to delete ALL time records? This cannot be undone.')) {
+                allTimeRecords = [];
+                if (isClockedIn) {
+                    // If currently clocked in, keep the current clock-in record
+                    const now = new Date();
+                    allTimeRecords.push({
+                        type: 'in',
+                        time: clockInTime.getTime(),
+                        id: Date.now()
+                    });
+                }
+                updateActivityLogs();
+                saveToStorage();
+                closeModal();
+            }
         }
         
-        // Update activity log
-        function updateActivityLog() {
+        // Update all activity logs
+        function updateActivityLogs() {
+            updateTodayActivityLog();
+            updateHistoryLog();
+            updateRecentActivityLog();
+            updateTimeTotals();
+        }
+        
+        // Update today's activity log
+        function updateTodayActivityLog() {
             activityLog.innerHTML = '';
+            const today = formatDate(new Date());
+            let todayActivities = [];
             
-            if (todayActivities.length === 0) {
+            // Group activities by day
+            for (let i = 0; i < allTimeRecords.length; i++) {
+                const recordDate = formatDate(new Date(allTimeRecords[i].time));
+                if (recordDate === today) {
+                    todayActivities.push(allTimeRecords[i]);
+                }
+            }
+            
+            if (todayActivities.length === 0 && !isClockedIn) {
                 activityLog.innerHTML = '<div class="history-item">No activity yet today</div>';
                 return;
             }
             
-            // Group in/out pairs for better display
+            // Show today's activities
             for (let i = 0; i < todayActivities.length; i++) {
                 const activity = todayActivities[i];
                 const div = document.createElement('div');
                 div.className = 'history-item';
                 
-                // Convert timestamp back to Date object
                 const activityTime = new Date(activity.time);
                 
                 if (activity.type === 'in') {
@@ -468,6 +672,97 @@
                 activityLog.appendChild(div);
             }
             
+            // Add current clock-in if active
+            if (isClockedIn && clockInTime) {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <span>🔵 Clocked in at ${formatTime(clockInTime)} (ongoing)</span>
+                    <div class="history-item-actions">
+                        <button class="history-item-delete" data-id="current">Delete</button>
+                    </div>
+                `;
+                activityLog.appendChild(div);
+            }
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.history-item-delete').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    if (id === "current") {
+                        if (confirm('Are you sure you want to delete the current clock-in? This will also delete any corresponding clock-out.')) {
+                            clockOut();
+                        }
+                    } else {
+                        deleteRecord(parseInt(id));
+                    }
+                });
+            });
+        }
+        
+        // Update history log
+        function updateHistoryLog() {
+            historyLog.innerHTML = '';
+            
+            if (allTimeRecords.length === 0) {
+                historyLog.innerHTML = '<div class="history-item">No records found</div>';
+                return;
+            }
+            
+            // Group records by date
+            const recordsByDate = {};
+            allTimeRecords.forEach(record => {
+                const date = formatDate(new Date(record.time));
+                if (!recordsByDate[date]) {
+                    recordsByDate[date] = [];
+                }
+                recordsByDate[date].push(record);
+            });
+            
+            // Sort dates in descending order
+            const sortedDates = Object.keys(recordsByDate).sort((a, b) => new Date(b) - new Date(a));
+            
+            // Display records by date
+            sortedDates.forEach(date => {
+                const dateHeader = document.createElement('h4');
+                dateHeader.textContent = formatDateWithMonth(new Date(date));
+                historyLog.appendChild(dateHeader);
+                
+                const dateTotal = recordsByDate[date]
+                    .filter(record => record.type === 'out' && record.duration)
+                    .reduce((sum, record) => sum + record.duration, 0);
+                
+                const dateTotalDisplay = document.createElement('div');
+                dateTotalDisplay.className = 'summary';
+                dateTotalDisplay.textContent = `Total: ${formatSeconds(dateTotal)}`;
+                historyLog.appendChild(dateTotalDisplay);
+                
+                recordsByDate[date].forEach(record => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    
+                    const recordTime = new Date(record.time);
+                    
+                    if (record.type === 'in') {
+                        div.innerHTML = `
+                            <span>🔵 Clocked in at ${formatTime(recordTime)}</span>
+                            <div class="history-item-actions">
+                                <button class="history-item-delete" data-id="${record.id}">Delete</button>
+                            </div>
+                        `;
+                    } else {
+                        div.innerHTML = `
+                            <span>🔴 Clocked out at ${formatTime(recordTime)} (${formatSeconds(record.duration)})</span>
+                            <div class="history-item-actions">
+                                <button class="history-item-delete" data-id="${record.id}">Delete</button>
+                            </div>
+                        `;
+                    }
+                    
+                    historyLog.appendChild(div);
+                });
+            });
+            
             // Add event listeners to delete buttons
             document.querySelectorAll('.history-item-delete').forEach(button => {
                 button.addEventListener('click', (e) => {
@@ -477,31 +772,63 @@
             });
         }
         
+        // Update recent activity log
+        function updateRecentActivityLog() {
+            recentActivity.innerHTML = '';
+            
+            if (allTimeRecords.length === 0) {
+                recentActivity.innerHTML = '<div class="history-item">No recent activity</div>';
+                return;
+            }
+            
+            // Get last 5 records (sorted newest first)
+            const recentRecords = [...allTimeRecords]
+                .sort((a, b) => b.time - a.time)
+                .slice(0, 5);
+            
+            recentRecords.forEach(record => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                
+                const recordTime = new Date(record.time);
+                const dateStr = formatDateWithMonth(recordTime);
+                
+                if (record.type === 'in') {
+                    div.textContent = `🔵 ${dateStr} - Clocked in at ${formatTime(recordTime)}`;
+                } else {
+                    div.textContent = `🔴 ${dateStr} - Clocked out at ${formatTime(recordTime)} (${formatSeconds(record.duration)})`;
+                }
+                
+                recentActivity.appendChild(div);
+            });
+        }
+        
         // Delete a single record
         function deleteRecord(id) {
             if (confirm('Are you sure you want to delete this record?')) {
                 // Find the index of the record to delete
-                const index = todayActivities.findIndex(activity => activity.id === id);
+                const index = allTimeRecords.findIndex(record => record.id === id);
                 if (index !== -1) {
-                    // If it's an "out" record, subtract its duration from total
-                    if (todayActivities[index].type === 'out' && todayActivities[index].duration) {
-                        totalSecondsToday -= todayActivities[index].duration;
-                        totalTimeDisplay.textContent = `Total time today: ${formatSeconds(totalSecondsToday)}`;
-                    }
-                    
-                    // Remove the record
-                    todayActivities.splice(index, 1);
-                    
-                    // If we deleted an "in" record, check if we need to delete its corresponding "out" record
-                    if (index < todayActivities.length && todayActivities[index].type === 'out') {
-                        if (todayActivities[index].duration) {
-                            totalSecondsToday -= todayActivities[index].duration;
-                            totalTimeDisplay.textContent = `Total time today: ${formatSeconds(totalSecondsToday)}`;
+                    // If it's an "out" record, we might need to delete its "in" record
+                    if (allTimeRecords[index].type === 'out') {
+                        // Find the corresponding "in" record (immediately before)
+                        if (index > 0 && allTimeRecords[index - 1].type === 'in') {
+                            allTimeRecords.splice(index - 1, 2);
+                        } else {
+                            allTimeRecords.splice(index, 1);
                         }
-                        todayActivities.splice(index, 1);
+                    } 
+                    // If it's an "in" record, we might need to delete its "out" record
+                    else if (allTimeRecords[index].type === 'in') {
+                        // Find the corresponding "out" record (immediately after)
+                        if (index < allTimeRecords.length - 1 && allTimeRecords[index + 1].type === 'out') {
+                            allTimeRecords.splice(index, 2);
+                        } else {
+                            allTimeRecords.splice(index, 1);
+                        }
                     }
                     
-                    updateActivityLog();
+                    updateActivityLogs();
                     saveToStorage();
                 }
             }
@@ -509,26 +836,88 @@
         
         // Generate shareable text
         function generateShareText() {
-            let text = `Time Tracking Report - ${formatDate(new Date())}\n\n`;
-            text += `Total time today: ${formatSeconds(totalSecondsToday)}\n\n`;
-            text += "Activity Log:\n";
+            let text = `Time Tracking Report\n`;
+            text += `Generated: ${formatDateWithMonth(new Date())}\n\n`;
             
-            if (todayActivities.length === 0) {
-                text += "No activities recorded today\n";
-            } else {
-                for (let i = 0; i < todayActivities.length; i++) {
-                    const activity = todayActivities[i];
-                    const activityTime = new Date(activity.time);
-                    
-                    if (activity.type === 'in') {
-                        text += `🔵 Clocked in at ${formatTime(activityTime)}\n`;
-                    } else {
-                        text += `🔴 Clocked out at ${formatTime(activityTime)} (Duration: ${formatSeconds(activity.duration)})\n`;
-                    }
+            // Summary
+            const totals = calculateTimeTotals();
+            text += `SUMMARY:\n`;
+            text += `Today: ${formatSeconds(totals.today)}\n`;
+            text += `This Week: ${formatSeconds(totals.week)}\n`;
+            text += `This Month: ${formatSeconds(totals.month)}\n`;
+            text += `All Time: ${formatSeconds(totals.allTime)}\n\n`;
+            
+            // Detailed records
+            text += `DETAILED RECORDS:\n`;
+            
+            // Group records by date
+            const recordsByDate = {};
+            allTimeRecords.forEach(record => {
+                const date = formatDate(new Date(record.time));
+                if (!recordsByDate[date]) {
+                    recordsByDate[date] = [];
                 }
+                recordsByDate[date].push(record);
+            });
+            
+            // Sort dates in descending order
+            const sortedDates = Object.keys(recordsByDate).sort((a, b) => new Date(b) - new Date(a));
+            
+            // Add records by date
+            sortedDates.forEach(date => {
+                const dateTotal = recordsByDate[date]
+                    .filter(record => record.type === 'out' && record.duration)
+                    .reduce((sum, record) => sum + record.duration, 0);
+                
+                text += `\n${formatDateWithMonth(new Date(date))} (Total: ${formatSeconds(dateTotal)})\n`;
+                
+                recordsByDate[date].forEach(record => {
+                    const recordTime = new Date(record.time);
+                    if (record.type === 'in') {
+                        text += `  🔵 Clocked in at ${formatTime(recordTime)}\n`;
+                    } else {
+                        text += `  🔴 Clocked out at ${formatTime(recordTime)} (${formatSeconds(record.duration)})\n`;
+                    }
+                });
+            });
+            
+            // Add current clock-in if active
+            if (isClockedIn && clockInTime) {
+                const now = new Date();
+                const currentDuration = Math.floor((now - clockInTime) / 1000);
+                text += `\nCURRENT SESSION (ongoing):\n`;
+                text += `  🔵 Clocked in at ${formatTime(clockInTime)} (${formatSeconds(currentDuration)} so far)\n`;
             }
             
             return text;
+        }
+        
+        // Generate CSV data
+        function generateCSVData() {
+            let csv = 'Date,Time,Type,Duration (seconds),Duration (HH:MM:SS)\n';
+            
+            allTimeRecords.forEach(record => {
+                const recordDate = new Date(record.time);
+                const dateStr = formatDate(recordDate);
+                const timeStr = formatTime(recordDate);
+                const type = record.type === 'in' ? 'Clock In' : 'Clock Out';
+                const durationSec = record.duration || '';
+                const durationFormatted = record.duration ? formatSeconds(record.duration) : '';
+                
+                csv += `${dateStr},${timeStr},${type},${durationSec},${durationFormatted}\n`;
+            });
+            
+            // Add current clock-in if active
+            if (isClockedIn && clockInTime) {
+                const now = new Date();
+                const currentDuration = Math.floor((now - clockInTime) / 1000);
+                const dateStr = formatDate(clockInTime);
+                const timeStr = formatTime(clockInTime);
+                
+                csv += `${dateStr},${timeStr},Clock In (ongoing),${currentDuration},${formatSeconds(currentDuration)}\n`;
+            }
+            
+            return csv;
         }
         
         // Share functions
@@ -560,36 +949,66 @@
             URL.revokeObjectURL(url);
         }
         
-        function openEmailClient() {
-            const subject = `Time Tracking Report - ${formatDate(new Date())}`;
-            const body = generateShareText();
-            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        function downloadAsCSV() {
+            const csv = generateCSVData();
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `time-tracking-${formatDate(new Date())}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
         
-        // Modal functions
-        function openModal() {
-            confirmModal.style.display = 'block';
+        // Tab switching
+        function switchTab(tabName) {
+            tabs.forEach(tab => {
+                if (tab.dataset.tab === tabName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            tabContents.forEach(content => {
+                if (content.id === `${tabName}-tab`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
         }
         
-        function closeModal() {
-            confirmModal.style.display = 'none';
-        }
-        
-        // Load any existing data from localStorage
+        // Load data from localStorage
         function loadFromStorage() {
-            const today = new Date().toDateString();
             const savedData = localStorage.getItem('timeTrackingData');
             
             if (savedData) {
                 try {
                     const data = JSON.parse(savedData);
+                    allTimeRecords = data.records || [];
                     
-                    if (data.date === today) {
-                        todayActivities = data.activities || [];
-                        totalSecondsToday = data.totalSeconds || 0;
-                        totalTimeDisplay.textContent = `Total time today: ${formatSeconds(totalSecondsToday)}`;
-                        updateActivityLog();
+                    // Check for any ongoing clock-in from previous session
+                    if (data.currentClockIn) {
+                        const lastRecord = allTimeRecords[allTimeRecords.length - 1];
+                        if (lastRecord && lastRecord.type === 'in') {
+                            clockInTime = new Date(lastRecord.time);
+                            isClockedIn = true;
+                            
+                            // Update UI
+                            statusDiv.textContent = `Clocked In at ${formatTime(clockInTime)} (ongoing)`;
+                            statusDiv.className = 'status clock-in';
+                            clockInBtn.disabled = true;
+                            clockOutBtn.disabled = false;
+                            
+                            // Start updating shift duration
+                            shiftInterval = setInterval(updateShiftDuration, 1000);
+                        }
                     }
+                    
+                    updateActivityLogs();
                 } catch (e) {
                     console.error('Error parsing saved data:', e);
                 }
@@ -598,11 +1017,9 @@
         
         // Save data to localStorage
         function saveToStorage() {
-            const today = new Date().toDateString();
             const data = {
-                date: today,
-                activities: todayActivities,
-                totalSeconds: totalSecondsToday
+                records: allTimeRecords,
+                currentClockIn: isClockedIn
             };
             localStorage.setItem('timeTrackingData', JSON.stringify(data));
         }
@@ -610,19 +1027,24 @@
         // Event listeners
         clockInBtn.addEventListener('click', clockIn);
         clockOutBtn.addEventListener('click', clockOut);
-        deleteAllBtn.addEventListener('click', openModal);
+        deleteAllBtn.addEventListener('click', () => confirmModal.style.display = 'block');
         shareBtn.addEventListener('click', openShareModal);
         confirmDeleteBtn.addEventListener('click', deleteAllRecords);
-        cancelDeleteBtn.addEventListener('click', closeModal);
+        cancelDeleteBtn.addEventListener('click', () => confirmModal.style.display = 'none');
         copyOption.addEventListener('click', copyToClipboard);
         downloadOption.addEventListener('click', downloadAsFile);
-        emailOption.addEventListener('click', openEmailClient);
+        downloadCSVOption.addEventListener('click', downloadAsCSV);
         closeShareBtn.addEventListener('click', closeShareModal);
+        
+        // Tab click events
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        });
         
         // Close modals when clicking outside of them
         window.addEventListener('click', (event) => {
             if (event.target === confirmModal) {
-                closeModal();
+                confirmModal.style.display = 'none';
             }
             if (event.target === shareModal) {
                 closeShareModal();
@@ -637,6 +1059,13 @@
         // Save data periodically and before unload
         setInterval(saveToStorage, 30000);
         window.addEventListener('beforeunload', saveToStorage);
+        
+        // Check for clock-in on page load and continue tracking
+        if (isClockedIn && clockInTime) {
+            const now = new Date();
+            const elapsed = Math.floor((now - clockInTime) / 1000);
+            console.log(`Resumed clock-in session that was ${formatSeconds(elapsed)} long`);
+        }
     </script>
 </body>
 </html>
